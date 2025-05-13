@@ -1,0 +1,44 @@
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "${APP_PORT:-3000}:${PORT:-3000}" # Map host port (from .env or default 3000) to container port (from Dockerfile env or default 3000)
+    depends_on:
+      - mongo
+    environment:
+      # Pass environment variables from your .env file or define them here
+      # The .env file in your project root will be used by docker-compose if not specified otherwise
+      # Ensure these match your .env file structure
+      - NODE_ENV=development # or production
+      - MONGO_URI=mongodb://mongo:27017/my_auth_app_db # Connect to the mongo service
+      - SESSION_SECRET=${SESSION_SECRET}
+      - CSRF_SECRET=${CSRF_SECRET}
+      - EMAIL_HOST=${EMAIL_HOST}
+      - EMAIL_PORT=${EMAIL_PORT}
+      - EMAIL_SECURE=${EMAIL_SECURE}
+      - EMAIL_USER=${EMAIL_USER}
+      - EMAIL_PASS=${EMAIL_PASS}
+      - EMAIL_FROM_ADDRESS=${EMAIL_FROM_ADDRESS}
+      - APP_NAME=${APP_NAME:-My Auth App} # Example default
+      - PORT=${PORT:-3000} # Port the app runs on inside the container
+      - FIRST_ADMIN_EMAIL=${FIRST_ADMIN_EMAIL}
+      - FIRST_ADMIN_PASSWORD=${FIRST_ADMIN_PASSWORD}
+    volumes:
+      - .:/usr/src/app # Mounts current directory to app directory in container (good for development)
+      - /usr/src/app/node_modules # Anonymous volume to prevent host node_modules from overwriting container's
+    # command: npm run dev # If you want to use nodemon for development
+
+  mongo:
+    image: mongo:latest # Or a specific version e.g., mongo:6.0
+    ports:
+      - "${MONGO_HOST_PORT:-27017}:27017" # Map host port (from .env or default 27017) to container port 27017
+    volumes:
+      - mongo-data:/data/db # Persist MongoDB data using a named volume
+      # environment: # Optional: if you need to set MongoDB specific env vars
+      # MONGO_INITDB_ROOT_USERNAME: root # Example
+      # MONGO_INITDB_ROOT_PASSWORD: example # Example
+
+volumes:
+  mongo-data: # Define the named volume

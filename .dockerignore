@@ -1,0 +1,11 @@
+node_modules
+npm-debug.log
+.env
+.env.*
+*.env
+.git
+.gitignore
+Dockerfile
+docker-compose.yml
+README.md
+# Add any other files/directories you don't want in your Docker image

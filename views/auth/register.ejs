@@ -1,0 +1,28 @@
+<%- include('../partials/header') %>
+
+<h2>Register</h2>
+<form action="/auth/register" method="POST">
+    <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+    <div class="form-group">
+        <label for="username">Username</label>
+        <input type="text" id="username" name="username" value="<%= typeof oldInput !== 'undefined' && oldInput.username ? oldInput.username : '' %>" required>
+    </div>
+    <div class="form-group">
+        <label for="email">Email</label>
+        <input type="email" id="email" name="email" value="<%= typeof oldInput !== 'undefined' && oldInput.email ? oldInput.email : '' %>" required>
+    </div>
+    <div class="form-group">
+        <label for="password">Password (min. 6 characters)</label>
+        <input type="password" id="password" name="password" required>
+    </div>
+    <div class="form-group">
+        <label for="confirmPassword">Confirm Password</label>
+        <input type="password" id="confirmPassword" name="confirmPassword" required>
+    </div>
+    <button type="submit" class="btn">Register</button>
+</form>
+<p>
+    Already have an account? <a href="/auth/login">Login</a>
+</p>
+
+<%- include('../partials/footer') %>

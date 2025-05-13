@@ -1,0 +1,35 @@
+<%- include('../partials/header') %>
+
+<h2>Edit User: <%= userToEdit.username %></h2>
+<form action="/admin/users/<%= userToEdit.id %>/edit" method="POST">
+    <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+    <div class="form-group">
+        <label for="username">Username</label>
+        <input type="text" id="username" name="username" value="<%= userToEdit.username %>" required>
+    </div>
+    <div class="form-group">
+        <label for="email">Email</label>
+        <input type="email" id="email" name="email" value="<%= userToEdit.email %>" required>
+    </div>
+    <div class="form-group">
+        <label for="role">Role</label>
+        <select id="role" name="role">
+            <option value="user" <%= userToEdit.role === 'user' ? 'selected' : '' %>>User</option>
+            <option value="admin" <%= userToEdit.role === 'admin' ? 'selected' : '' %>>Admin</option>
+        </select>
+    </div>
+    <div class="form-group">
+        <label for="isVerified">Verified</label>
+        <input type="checkbox" id="isVerified" name="isVerified" <%= userToEdit.isVerified ? 'checked' : '' %>>
+    </div>
+    <hr>
+    <h4>Change Password (Optional)</h4>
+    <div class="form-group">
+        <label for="newPassword">New Password (leave blank to keep current)</label>
+        <input type="password" id="newPassword" name="newPassword">
+    </div>
+    <button type="submit" class="btn">Update User</button>
+    <a href="/admin/users" class="btn btn-secondary" style="background-color: #6c757d;">Cancel</a>
+</form>
+
+<%- include('../partials/footer') %>

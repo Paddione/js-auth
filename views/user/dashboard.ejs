@@ -1,0 +1,15 @@
+<%- include('../partials/header') %>
+
+<h2>User Dashboard</h2>
+<p>Welcome, <%= user.username %>!</p>
+<p>Your email: <%= user.email %></p>
+<p>Your role: <%= user.role %></p>
+
+<p><a href="/user/change-password" class="btn">Change Password</a></p>
+
+<% if (user.role === 'admin') { %>
+    <p><a href="/admin/dashboard" class="btn">Go to Admin Panel</a></p>
+<% } %>
+
+
+<%- include('../partials/footer') %>
