@@ -4,7 +4,7 @@ services:
       context: .
       dockerfile: Dockerfile
     ports:
-      - "${APP_PORT:-3000}:${PORT:-3000}" # Map host port (from .env or default 3000) to container port (from Dockerfile env or default 3000)
+      - "${APP_PORT:-7000}:${PORT:-7000}" # Map host port (from .env or default 3000) to container port (from Dockerfile env or default 3000)
     depends_on:
       - mongo
     environment:
@@ -22,9 +22,11 @@ services:
       - EMAIL_PASS=${EMAIL_PASS}
       - EMAIL_FROM_ADDRESS=${EMAIL_FROM_ADDRESS}
       - APP_NAME=${APP_NAME:-My Auth App} # Example default
-      - PORT=${PORT:-3000} # Port the app runs on inside the container
+      - PORT=${PORT:-7000} # Port the app runs on inside the container
       - FIRST_ADMIN_EMAIL=${FIRST_ADMIN_EMAIL}
       - FIRST_ADMIN_PASSWORD=${FIRST_ADMIN_PASSWORD}
+    networks:
+      - npm_network
     volumes:
       - .:/usr/src/app # Mounts current directory to app directory in container (good for development)
       - /usr/src/app/node_modules # Anonymous volume to prevent host node_modules from overwriting container's
@@ -42,3 +44,6 @@ services:
 
 volumes:
   mongo-data: # Define the named volume
+networks:
+  npm_network:
+    external: true
