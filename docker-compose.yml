@@ -41,7 +41,8 @@ services:
       # environment: # Optional: if you need to set MongoDB specific env vars
       # MONGO_INITDB_ROOT_USERNAME: root # Example
       # MONGO_INITDB_ROOT_PASSWORD: example # Example
-
+    networks:
+      - npm_network
 volumes:
   mongo-data: # Define the named volume
 networks:
