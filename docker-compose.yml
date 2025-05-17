@@ -4,47 +4,81 @@ services:
       context: .
       dockerfile: Dockerfile
     ports:
-      - "${APP_PORT:-7000}:${PORT:-7000}" # Map host port (from .env or default 3000) to container port (from Dockerfile env or default 3000)
+      # APP_DOCKER_HOST_PORT from .env is used for the host side of the port mapping.
+      # PORT from .env is used for the container side of the port mapping.
+      # Defaults to 7000:7000 if neither are set.
+      - "${APP_DOCKER_HOST_PORT:-${PORT:-7000}}:${PORT:-7000}"
     depends_on:
       - mongo
     environment:
-      # Pass environment variables from your .env file or define them here
-      # The .env file in your project root will be used by docker-compose if not specified otherwise
-      # Ensure these match your .env file structure
-      - NODE_ENV=development # or production
-      - MONGO_URI=mongodb://mongo:27017/my_auth_app_db # Connect to the mongo service
-      - SESSION_SECRET=${SESSION_SECRET}
-      - CSRF_SECRET=${CSRF_SECRET}
+      # --- General Application Settings ---
+      - NODE_ENV=${NODE_ENV:-development} # Default to development if not set in .env
+      - PORT=${PORT:-7000} # Port the app runs on INSIDE the container
+      - APP_BASE_URL=${APP_BASE_URL} # From .env
+      - APP_NAME=${APP_NAME:-My Auth App} # From .env or default
+
+      # --- Database ---
+      # For connecting to the 'mongo' service within the Docker network
+      - MONGO_URI=mongodb://mongo:27017/${MONGO_DB_NAME:-js-auth_db} # Use MONGO_DB_NAME from .env or default
+
+      # --- Security & Session ---
+      - SESSION_SECRET=${SESSION_SECRET} # From .env
+      - CSRF_SECRET=${CSRF_SECRET}     # From .env
+
+      # --- Microsoft OAuth & Graph API ---
+      # These are needed if your application code reads them from environment variables
+      # to configure the Graph API email sending.
+      - MICROSOFT_CLIENT_ID=${MICROSOFT_CLIENT_ID}
+      - MICROSOFT_CLIENT_SECRET=${MICROSOFT_CLIENT_SECRET}
+      - MICROSOFT_TENANT_ID=${MICROSOFT_TENANT_ID}
+      # This is the variable your .env file uses for the Graph API sender
+      - EMAIL_SENDER_ADDRESS=${EMAIL_SENDER_ADDRESS}
+
+      # --- Traditional SMTP Email Configuration ---
+      # If you are NOT using traditional SMTP and ONLY using Microsoft Graph API for emails,
+      # you can safely REMOVE or COMMENT OUT the following SMTP lines.
+      # If you DO want to use SMTP (e.g., as a fallback or primary),
+      # ensure these variables are defined in your .env file.
       - EMAIL_HOST=${EMAIL_HOST}
       - EMAIL_PORT=${EMAIL_PORT}
       - EMAIL_SECURE=${EMAIL_SECURE}
       - EMAIL_USER=${EMAIL_USER}
       - EMAIL_PASS=${EMAIL_PASS}
-      - EMAIL_FROM_ADDRESS=${EMAIL_FROM_ADDRESS}
-      - APP_NAME=${APP_NAME:-My Auth App} # Example default
-      - PORT=${PORT:-7000} # Port the app runs on inside the container
+      # Note: If using SMTP, EMAIL_FROM_ADDRESS is standard.
+      # Your .env uses EMAIL_SENDER_ADDRESS for Graph API.
+      # If your app uses EMAIL_FROM_ADDRESS for SMTP, ensure it's in your .env or defaults appropriately.
+      - EMAIL_FROM_ADDRESS=${EMAIL_FROM_ADDRESS} # This was causing one of the warnings.
+
+      # --- First Admin User ---
       - FIRST_ADMIN_EMAIL=${FIRST_ADMIN_EMAIL}
       - FIRST_ADMIN_PASSWORD=${FIRST_ADMIN_PASSWORD}
+
     networks:
-      - npm_network
+      - npm_network # Ensure this network is defined as external or locally
     volumes:
-      - .:/usr/src/app # Mounts current directory to app directory in container (good for development)
-      - /usr/src/app/node_modules # Anonymous volume to prevent host node_modules from overwriting container's
-    # command: npm run dev # If you want to use nodemon for development
+      - .:/usr/src/app
+      - /usr/src/app/node_modules
+    # command: npm run dev # Uncomment for development with nodemon
 
   mongo:
     image: mongo:latest # Or a specific version e.g., mongo:6.0
     ports:
-      - "${MONGO_HOST_PORT:-27017}:27017" # Map host port (from .env or default 27017) to container port 27017
+      # MONGO_DOCKER_HOST_PORT from .env for host side, defaults to 27017
+      - "${MONGO_DOCKER_HOST_PORT:-27017}:27017"
     volumes:
-      - mongo-data:/data/db # Persist MongoDB data using a named volume
-      # environment: # Optional: if you need to set MongoDB specific env vars
-      # MONGO_INITDB_ROOT_USERNAME: root # Example
-      # MONGO_INITDB_ROOT_PASSWORD: example # Example
+      - mongo-data:/data/db
+      # environment: # Optional MongoDB specific env vars
+      # - MONGO_INITDB_ROOT_USERNAME=${MONGO_INITDB_ROOT_USERNAME} # Example from .env
+      # - MONGO_INITDB_ROOT_PASSWORD=${MONGO_INITDB_ROOT_PASSWORD} # Example from .env
+      # - MONGO_INITDB_DATABASE=${MONGO_DB_NAME:-js-auth_db} # Can be used to create initial DB
     networks:
       - npm_network
+
 volumes:
-  mongo-data: # Define the named volume
+  mongo-data:
+
 networks:
   npm_network:
-    external: true
+    external: true # Assuming this is a pre-existing external network
+    # If it's not external, define it:
+    # driver: bridge
